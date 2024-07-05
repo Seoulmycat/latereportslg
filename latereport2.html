@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Journal Entry</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.21.1/docxtemplater.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+</head>
+<body>
+    <form id="journalForm">
+        <label for="student_name">학생 이름:</label><br>
+        <input type="text" id="student_name" name="student_name"><br><br>
+        
+        <label for="class_date">수업일자:</label><br>
+        <input type="date" id="class_date" name="class_date"><br><br>
+        
+        <label for="class_type">수업 종류:</label><br>
+        <input type="radio" id="regular" name="class_type" value="정규">
+        <label for="regular">정규</label><br>
+        <input type="radio" id="supplementary" name="class_type" value="보충">
+        <label for="supplementary">보충</label><br><br>
+        
+        <label for="class_progress">수업 진행 여부:</label><br>
+        <input type="radio" id="progress_yes" name="class_progress" value="진행">
+        <label for="progress_yes">진행</label><br>
+        <input type="radio" id="progress_no" name="class_progress" value="미진행">
+        <label for="progress_no">미진행</label><br><br>
+        
+        <label for="class_time">수업 시간:</label><br>
+        <input type="text" id="class_time" name="class_time"><br><br>
+        
+        <label for="non_progress_reason">미진행 사유:</label><br>
+        <input type="radio" id="absent" name="non_progress_reason" value="학생 무단결석">
+        <label for="absent">학생 무단결석</label><br>
+        <input type="radio" id="postponed" name="non_progress_reason" value="수업 연기">
+        <label for="postponed">수업 연기</label><br>
+        <input type="radio" id="cancelled" name="non_progress_reason" value="휴강">
+        <label for="cancelled">휴강</label><br><br>
+        
+        <label for="non_progress_detail">미진행 시 미진행 사유:</label><br>
+        <input type="text" id="non_progress_detail" name="non_progress_detail"><br><br>
+        
+        <label for="class_attitude">수업 태도:</label><br>
+        <input type="radio" id="attitude_good" name="class_attitude" value="상">
+        <label for="attitude_good">상</label><br>
+        <input type="radio" id="attitude_average" name="class_attitude" value="중">
+        <label for="attitude_average">중</label><br>
+        <input type="radio" id="attitude_bad" name="class_attitude" value="하">
+        <label for="attitude_bad">하</label><br><br>
+        
+        <label for="progress_content">진도 현황 및 내용:</label><br>
+        <textarea id="progress_content" name="progress_content" rows="4" cols="50"></textarea><br><br>
+        
+        <label for="student_observation">학습자 관찰:</label><br>
+        <textarea id="student_observation" name="student_observation" rows="4" cols="50"></textarea><br><br>
+        
+        <label for="non_completion_reason">미작성 사유:</label><br>
+        <textarea id="non_completion_reason" name="non_completion_reason" rows="4" cols="50"></textarea><br><br>
+        
+        <button type="button" onclick="generateDocx()">Submit</button>
+    </form>
+
+    <script>
+        function generateDocx() {
+            const zip = new JSZip();
+            const doc = new window.docxtemplater();
+
+            // Load the document template
+            const templateUrl = "https://raw.githubusercontent.com/lolipop119/UploadSamples/main/template.docx"; // 빈 템플릿 DOCX 파일 링크
+            fetch(templateUrl)
+                .then(res => res.arrayBuffer())
+                .then(content => {
+                    doc.loadZip(zip.loadAsync(content))
+                        .then(() => {
+                            const studentName = document.getElementById('student_name').value;
+                            const classDate = document.getElementById('class_date').value;
+                            const classType = document.querySelector('input[name="class_type"]:checked').value;
+                            const classProgress = document.querySelector('input[name="class_progress"]:checked').value;
+                            const classTime = document.getElementById('class_time').value;
+                            const nonProgressReason = document.querySelector('input[name="non_progress_reason"]:checked').value;
+                            const nonProgressDetail = document.getElementById('non_progress_detail').value;
+                            const classAttitude = document.querySelector('input[name="class_attitude"]:checked').value;
+                            const progressContent = document.getElementById('progress_content').value;
+                            const studentObservation = document.getElementById('student_observation').value;
+                            const nonCompletionReason = document.getElementById('non_completion_reason').value;
+
+                            doc.setData({
+                                student_name: studentName,
+                                class_date: classDate,
+                                class_type: classType,
+                                class_progress: classProgress,
+                                class_time: classTime,
+                                non_progress_reason: nonProgressReason,
+                                non_progress_detail: nonProgressDetail,
+                                class_attitude: classAttitude,
+                                progress_content: progressContent,
+                                student_observation: studentObservation,
+                                non_completion_reason: nonCompletionReason
+                            });
+
+                            try {
+                                doc.render();
+                            } catch (error) {
+                                console.error(error);
+                                throw error;
+                            }
+
+                            const out = doc.getZip().generate({
+                                type: "blob",
+                                mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            });
+
+                            saveAs(out, `${studentName}_수업일지.docx`);
+                        });
+                });
+        }
+    </script>
+</body>
+</html>
+
